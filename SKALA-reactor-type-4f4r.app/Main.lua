@@ -9,26 +9,26 @@ local f = require("filesystem")
 
 -----------------------ДАТЧИКИ ПОТОКА-----------------------------
 
-local steam_gauge = component.proxy("26f95bc8-e07a-4641-86c5-b7995380b504")
-local low_press_steam_gauge = component.proxy("674609b0-7242-4671-8ca2-27b164919507")
-local water_gauge = component.proxy("9659f5bd-9405-4261-8639-fb7851e8277a")
+local steam_gauge = component.proxy("32d3aa58-aa91-4de8-a437-01cac9b0cfd1")
+local low_press_steam_gauge = component.proxy("cbb1f5d5-202a-4ce6-8338-f3a6b5271491")
+local water_gauge = component.proxy("8a09a674-6279-4ad4-a240-4169fb4db313")
 
 ------------------------РЕАКТОР РБМК------------------------------
 
-local f1 = component.proxy("0e818add-80cb-4ec9-afa5-8004db0848a5")
-local f2 = component.proxy("d0ddfae3-92e5-441f-bca6-7298b26357d0")
-local f3 = component.proxy("be3f1cf8-576b-406d-b9b4-aaa6fb5eedf5")
-local f4 = component.proxy("11e3a64f-37e4-44d3-bb62-65978a3e0442")
+local f1 = component.proxy("f8ffb4cf-200a-4597-bd85-25139033c28f")
+local f2 = component.proxy("8e8f5eb5-ea01-4b27-9f67-fd2684aaa38b")
+local f3 = component.proxy("a9aabc56-230b-402d-86af-d9f93da5b36f")
+local f4 = component.proxy("eeff5478-9a86-41e3-91be-d07e505806e1")
 
-local r1 = component.proxy("83679015-5e8c-40df-81bb-f40afb70fd65")
-local r2 = component.proxy("a49fa2b7-0bdc-4feb-8def-6b6f8b697865")
-local r3 = component.proxy("93f57b45-bd92-4dc6-adc2-78752d459f2c")
-local r4 = component.proxy("ecc11a83-76cd-40bf-9cf7-8690e2c44444")
+local r1 = component.proxy("57d82623-c0ff-452a-b064-3e12b48a078c")
+local r2 = component.proxy("98ed547d-1a55-4e3a-bf4c-4f4035f7e1ce")
+local r3 = component.proxy("52c322f9-388c-4597-8376-29aeb6135516")
+local r4 = component.proxy("08c6682f-118e-41b7-a8b4-8becd03dbb2d")
 
 ---------------------------ДРУГОЕ---------------------------------
 
-local rad = component.proxy("ea8fec7c-8ba3-4a5b-9f95-0eece417fdd3")
-local water_storage = component.proxy("e9eeaea6-fe05-47e1-8e87-c2ba15a4fc6b")
+local rad = component.proxy("f857a6fc-29cd-46cd-830b-eaae7bfada44")
+local water_storage = component.proxy("8cf23da0-6c7c-4303-8e79-a8993759a0af")
 
 ------------------------------------------------------------------
 
@@ -40,12 +40,18 @@ local actionButtons = window:addChild(GUI.actionButtons(2, 2, false))
 -- Причина, по которой сработала АЗ
 local azreason = "ХЗ"
 
+-- Переменная - статус, определяет пищать ли при радиации
 local radBeep = false
+
+local isAz = false
 
 local levelSlider = window:addChild(GUI.slider(37, 37, 40, 0x66DB80, 0x0, 0xFFFFFF, 0x555555, 0, 100, 50, true, "Высота: ", "%"))
 levelSlider.roundValues = true
 levelSlider.value = r1.getLevel()
 levelSlider.onValueChanged = function()
+  if levelSlider.value > 0 then
+    isAz = false
+  end
   r1.setLevel(levelSlider.value)
   r2.setLevel(levelSlider.value)
   r3.setLevel(levelSlider.value)
@@ -54,11 +60,74 @@ end
 
 window:addChild(GUI.text(66, 2, 0x555555, "СУЗ СКАЛА 2.0 мини"))
 
-getName = {
+local getName = {
   ["N/A"] = "Т. с. отсутствует",
   ["item.rbmk_fuel_ueu"] = "Необогащ. уран. т. с.",
+  ["item.rbmk_fuel_meu"] = "Среднеобогащ. уран. т. с.",
+  ["item.rbmk_fuel_heu"] = "Высокообогащ. уран. т. с.",
   ["item.rbmk_fuel_leaus"] = "Низкообогащ. австрал. т. с.",
-  
+  ["item.rbmk_fuel_heaus"] = "Высокообогащ. австрал. т. с.",
+  ["item.rbmk_fuel_pu238be"] = "Плут. 238 бер. ист. ней.",
+  ["item.rbmk_fuel_po210be"] = "Полон. 210 бер. ист. ней.",
+  ["item.rbmk_fuel_ra226be"] = "Рад. 226 бер. ист. ней.",
+  ["item.rbmk_fuel_lea"] = "Низкообогащ. америц. т. с.",
+  ["item.rbmk_fuel_mea"] = "Среднеобогащ. америц. т. с.",
+  ["item.rbmk_fuel_hea241"] = "Высокообогащ. америц. 241 т. с.",
+  ["item.rbmk_fuel_hea242"] = "Высокообогащ. америц. 242 т. с.",
+  ["item.rbmk_fuel_heu235"] = "Высокообогащ. уран. 235 т. с.",
+  ["item.rbmk_fuel_lep"] = "Низкообогащ. плут. 239 т. с.",
+  ["item.rbmk_fuel_mep"] = "Среднеобогащ. плут. 239 т. с.",
+  ["item.rbmk_fuel_hep"] = "Высокообогащ. плут. 239 т. с.",
+  ["item.rbmk_fuel_hep241"] = "Высокообогащ. плут. 241 т. с.",
+  ["item.rbmk_fuel_men"] = "Среднеобогащ. нептун. т. с.",
+  ["item.rbmk_fuel_hen"] = "Высокообогащ. нептун. т. с.",
+  ["item.rbmk_fuel_mox"] = "МОКС т. с.",
+  ["item.rbmk_fuel_les"] = "Низкообогащ. шраб. т. с.",
+  ["item.rbmk_fuel_mes"] = "Среднеобогащ. шраб. т. с.",
+  ["item.rbmk_fuel_hes"] = "Высокообогащ. шраб. т. с.",
+  ["item.rbmk_fuel_thmeu"] = "Среднеобогащ. торий уран. т. с.",
+  ["item.rbmk_fuel_balefire_gold"] = "Флэшголд т. с.",
+  ["item.rbmk_fuel_flashlead"] = "Флэшлид т. с.",
+  ["item.rbmk_fuel_balefire"] = "Жар-топл. с.",
+  ["item.rbmk_fuel_zfb_pu241"] = "Плут. 241 ЦТС с.",
+  ["item.rbmk_fuel_zfb_bismuth"] = "Висмут. 241 ЦТС с.",
+  ["item.rbmk_fuel_zfb_am_mix"] = "Америц. реакт. кач. ЦТС с.",
+  ["item.rbmk_fuel_drx"] = "Дигамма т. с."
+}
+
+local getSafeTemp = {
+  ["N/A"] = 99999,
+  ["item.rbmk_fuel_ueu"] = 2100,
+  ["item.rbmk_fuel_meu"] = 2100,
+  ["item.rbmk_fuel_heu"] = 2100,
+  ["item.rbmk_fuel_leaus"] = 6000,
+  ["item.rbmk_fuel_heaus"] = 4200,
+  ["item.rbmk_fuel_pu238be"] = 900,
+  ["item.rbmk_fuel_po210be"] = 900,
+  ["item.rbmk_fuel_ra226be"] = 450,
+  ["item.rbmk_fuel_lea"] = 1850,
+  ["item.rbmk_fuel_mea"] = 1850,
+  ["item.rbmk_fuel_hea241"] = 1850,
+  ["item.rbmk_fuel_hea242"] = 1850,
+  ["item.rbmk_fuel_heu235"] = 2100,
+  ["item.rbmk_fuel_lep"] = 2000,
+  ["item.rbmk_fuel_mep"] = 2000,
+  ["item.rbmk_fuel_hep"] = 2000,
+  ["item.rbmk_fuel_hep241"] = 2000,
+  ["item.rbmk_fuel_men"] = 2000,
+  ["item.rbmk_fuel_hen"] = 2000,
+  ["item.rbmk_fuel_mox"] = 2000,
+  ["item.rbmk_fuel_les"] = 1700,
+  ["item.rbmk_fuel_mes"] = 2000,
+  ["item.rbmk_fuel_hes"] = 2400,
+  ["item.rbmk_fuel_thmeu"] = 2500,
+  ["item.rbmk_fuel_balefire_gold"] = 1200,
+  ["item.rbmk_fuel_flashlead"] = 1200,
+  ["item.rbmk_fuel_balefire"] = 2800,
+  ["item.rbmk_fuel_zfb_pu241"] = 2000,
+  ["item.rbmk_fuel_zfb_bismuth"] = 2000,
+  ["item.rbmk_fuel_zfb_am_mix"] = 2000,
+  ["item.rbmk_fuel_drx"] = 2000 -- Я не знаю температуру плавления дигамма стержня, мне кажется там вообще другой принцип работы
 }
 
 local f1typeLabel = window:addChild(GUI.text(2, 4, 0x555555, "Тип топл. стержня 1: " .. getName[f1.getType()]))
@@ -68,7 +137,7 @@ local f1coreHeatLabel = window:addChild(GUI.text(2, 7, 0x555555, "Темп. яд
 local f1xenonLabel = window:addChild(GUI.text(2, 8, 0x555555, "Отрав. ксеноном топл. стержня 1: " .. f1.getXenonPoison()))
 local f1depletionLabel = window:addChild(GUI.text(2, 9, 0x555555, "Обеднение топл. стержня 1: " .. f1.getDepletion()))
 
-local f2typeLabel = window:addChild(GUI.text(60, 4, 0x555555, "Тип топл. стержня 2: " .. f2.getType()))
+local f2typeLabel = window:addChild(GUI.text(60, 4, 0x555555, "Тип топл. стержня 2: " .. getName[f2.getType()]))
 local f2heatLabel = window:addChild(GUI.text(60, 5, 0x555555, "Темп. топл. стержня 2: " .. f2.getHeat()))
 local f2skinHeatLabel = window:addChild(GUI.text(60, 6, 0x555555, "Темп. оболочки топл. стержня 2: " .. f2.getSkinHeat()))
 local f2coreHeatLabel = window:addChild(GUI.text(60, 7, 0x555555, "Темп. ядра топл. стержня 2: " .. f2.getCoreHeat()))
@@ -77,7 +146,7 @@ local f2depletionLabel = window:addChild(GUI.text(60, 9, 0x555555, "Обедне
 local r1heightLabel = window:addChild(GUI.text(60, 10, 0x555555, "Высота рег. стержней 1 топл. стержня 2: " .. r1.getLevel()))
 local r2heightLabel = window:addChild(GUI.text(60, 11, 0x555555, "Высота рег. стержней 2 топл. стержня 2: " .. r2.getLevel()))
 
-local f3typeLabel = window:addChild(GUI.text(2, 11, 0x555555, "Тип топл. стержня 3: " .. f3.getType()))
+local f3typeLabel = window:addChild(GUI.text(2, 11, 0x555555, "Тип топл. стержня 3: " .. getName[f3.getType()]))
 local f3heatLabel = window:addChild(GUI.text(2, 12, 0x555555, "Темп. топл. стержня 3: " .. f3.getHeat()))
 local f3skinHeatLabel = window:addChild(GUI.text(2, 13, 0x555555, "Темп. оболочки топл. стержня 3: " .. f3.getSkinHeat()))
 local f3coreHeatLabel = window:addChild(GUI.text(2, 14, 0x555555, "Темп. ядра топл. стержня 3: " .. f3.getCoreHeat()))
@@ -86,7 +155,7 @@ local f3depletionLabel = window:addChild(GUI.text(2, 16, 0x555555, "Обедне
 local r3heightLabel = window:addChild(GUI.text(2, 17, 0x555555, "Высота рег. стержней 3 топл. стержня 3: " .. r3.getLevel()))
 local r4heightLabel = window:addChild(GUI.text(2, 18, 0x555555, "Высота рег. стержней 4 топл. стержня 3: " .. r4.getLevel()))
 
-local f4typeLabel = window:addChild(GUI.text(60, 13, 0x555555, "Тип топл. стержня 4: " .. f4.getType()))
+local f4typeLabel = window:addChild(GUI.text(60, 13, 0x555555, "Тип топл. стержня 4: " .. getName[f4.getType()]))
 local f4heatLabel = window:addChild(GUI.text(60, 14, 0x555555, "Темп. топл. стержня 4: " .. f4.getHeat()))
 local f4skinHeatLabel = window:addChild(GUI.text(60, 15, 0x555555, "Темп. оболочки топл. стержня 4: " .. f4.getSkinHeat()))
 local f4coreHeatLabel = window:addChild(GUI.text(60, 16, 0x555555, "Темп. ядра топл. стержня 4: " .. f4.getCoreHeat()))
@@ -102,6 +171,10 @@ mbt, mbs = low_press_steam_gauge.getTransfer()
 local lowPressSteamLabel = window:addChild(GUI.text(2, 23, 0x555555, "Поток пара низк. давл.: " .. mbt .. " MB/t, " .. mbs .. " MB/s"))
 
 local waterBufLabel = window:addChild(GUI.text(2, 24, 0x555555, "Количество воды в буфере: " .. water_storage.getFluidStored() .. " MB"))
+
+local neutrons = window:addChild(GUI.chart(60, 26, 60, 11, 0xEEEEEE, 0xAAAAAA, 0x888888, 0x008800, 0.25, 0.25, "s", "n", false, {}))
+
+local seconds = 1
 
 local lines = {
   "Начало лога"
@@ -130,6 +203,7 @@ local function palundra()
   r4.setLevel(0)
   levelSlider.value = 0
   table.insert(lines, "Сраб. АЗ. Причина: " .. azreason)
+  isAz = true
   f.append("/Mounts/64babd3e-bcbf-4eb9-aea3-e079f63c80f4/SKALA.log", "\n" .. os.date("%d %b %Y %H:%M:%S", system.getTime()) .. ", Сраб. АЗ. Причина: " .. azreason)
   workspace:draw()
   computer.beep(600, 0.6)
@@ -163,7 +237,7 @@ local function update_window()
   r1heightLabel.text = "Высота рег. стержней 1 топл. стержня 2: " .. r1.getLevel()
   r2heightLabel.text = "Высота рег. стержней 2 топл. стержня 2: " .. r2.getLevel()
   
-  f3typeLabel.text = "Тип топл. стержня 3: " .. f3.getType()
+  f3typeLabel.text = "Тип топл. стержня 3: " .. getName[f3.getType()]
   f3heatLabel.text = "Темп. топливного стержня 3: " .. f3.getHeat()
   f3skinHeatLabel.text = "Темп. оболочки топл. стержня 3: " .. f3.getSkinHeat()
   f3coreHeatLabel.text = "Темп. ядра топл. стержня 3: " .. f3.getCoreHeat()
@@ -172,7 +246,7 @@ local function update_window()
   r3heightLabel.text = "Высота рег. стержней 3 топл. стержня 3: " .. r3.getLevel()
   r4heightLabel.text = "Высота рег. стержней 4 топл. стержня 3: " .. r4.getLevel()
   
-  f4typeLabel.text = "Тип топл. стержня 4: " .. f4.getType()
+  f4typeLabel.text = "Тип топл. стержня 4: " .. getName[f4.getType()]
   f4heatLabel.text = "Темп. топливного стержня 4: " .. f4.getHeat()
   f4skinHeatLabel.text = "Темп. оболочки топл. стержня 4: " .. f4.getSkinHeat()
   f4coreHeatLabel.text = "Темп. ядра топл. стержня 4: " .. f4.getCoreHeat()
@@ -207,19 +281,19 @@ local function update_window()
   
   waterBufLabel.text = "Количество воды в буфере: " .. water_storage.getFluidStored() .. " MB"
   
-  if type(f3.getSkinHeat()) == "number" and f3.getSkinHeat() >= 1800 and r1.getLevel() > 0 then
+  if type(f3.getSkinHeat()) == "number" and f3.getSkinHeat() >= getSafeTemp[f3.getType()] and r1.getLevel() > 0 and not isAz then
     azreason = "Автомат. сраб. по темп. т. с. 3"
     palundra()
   end
-  if type(f1.getSkinHeat()) == "number" and f1.getSkinHeat() >= 1800 and r1.getLevel() > 0 then
+  if type(f1.getSkinHeat()) == "number" and f1.getSkinHeat() >= getSafeTemp[f1.getType()] and r1.getLevel() > 0 and not isAz then
     azreason = "Автомат. сраб. по темп. т. с. 1"
     palundra()
   end
-  if type(f2.getSkinHeat()) == "number" and f2.getSkinHeat() >= 1800 and r1.getLevel() > 0 then
+  if type(f2.getSkinHeat()) == "number" and f2.getSkinHeat() >= getSafeTemp[f2.getType()] and r1.getLevel() > 0 and not isAz then
     azreason = "Автомат. сраб. по темп. т. с. 2"
     palundra()
   end
-  if type(f4.getSkinHeat()) == "number" and f4.getSkinHeat() >= 1800 and r1.getLevel() > 0 then
+  if type(f4.getSkinHeat()) == "number" and f4.getSkinHeat() >= getSafeTemp[f4.getType()] and r1.getLevel() > 0 and not isAz then
     azreason = "Автомат. сраб. по темп. т. с. 4"
     palundra()
   end
@@ -230,7 +304,22 @@ local function update_window()
   
   if rad.getRads() > 10 then
     radBeep = true
+  else
+    radBeep = false
   end
+  
+  if seconds > 60 then
+    local y = seconds - 60
+    local z = seconds - y
+  end
+  
+  table.insert(neutrons.values, {seconds, f1.getFluxQuantity() + f2.getFluxQuantity() + f3.getFluxQuantity() + f4.getFluxQuantity()})
+  
+  while #neutrons.values > 0 and (seconds - neutrons.values[1][1]) > 30 do
+    table.remove(neutrons.values, 1)
+  end
+  
+  seconds = seconds + 1
 end
 
 local logSeparator = ", "
@@ -267,6 +356,7 @@ actionButtons.close.onTouch = function()
   event.removeHandler(update_window_handler)
   event.removeHandler(beepHandler)
   event.removeHandler(logHandler)
+  --logHandle:close()
   window:remove()
 end
 
