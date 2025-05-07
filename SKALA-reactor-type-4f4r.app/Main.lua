@@ -1,36 +1,12 @@
+
+
 local GUI = require("GUI")
 local system = require("System")
-local component = require("component")
 local number = require("number")
 local event = require("event")
 local computer = require("computer")
 local screen = require("Screen")
 local f = require("filesystem")
-
------------------------ДАТЧИКИ ПОТОКА-----------------------------
-
-local steam_gauge = component.proxy("32d3aa58-aa91-4de8-a437-01cac9b0cfd1")
-local low_press_steam_gauge = component.proxy("cbb1f5d5-202a-4ce6-8338-f3a6b5271491")
-local water_gauge = component.proxy("8a09a674-6279-4ad4-a240-4169fb4db313")
-
-------------------------РЕАКТОР РБМК------------------------------
-
-local f1 = component.proxy("f8ffb4cf-200a-4597-bd85-25139033c28f")
-local f2 = component.proxy("8e8f5eb5-ea01-4b27-9f67-fd2684aaa38b")
-local f3 = component.proxy("a9aabc56-230b-402d-86af-d9f93da5b36f")
-local f4 = component.proxy("eeff5478-9a86-41e3-91be-d07e505806e1")
-
-local r1 = component.proxy("57d82623-c0ff-452a-b064-3e12b48a078c")
-local r2 = component.proxy("98ed547d-1a55-4e3a-bf4c-4f4035f7e1ce")
-local r3 = component.proxy("52c322f9-388c-4597-8376-29aeb6135516")
-local r4 = component.proxy("08c6682f-118e-41b7-a8b4-8becd03dbb2d")
-
----------------------------ДРУГОЕ---------------------------------
-
-local rad = component.proxy("f857a6fc-29cd-46cd-830b-eaae7bfada44")
-local water_storage = component.proxy("8cf23da0-6c7c-4303-8e79-a8993759a0af")
-
-------------------------------------------------------------------
 
 -- Создание окна
 local workspace, window = system.addWindow(GUI.window(1, 1, 150, 40)) 
