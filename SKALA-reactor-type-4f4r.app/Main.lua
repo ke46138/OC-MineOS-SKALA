@@ -8,8 +8,19 @@ local computer = require("computer")
 local screen = require("Screen")
 local f = require("filesystem")
 
+-------------------------КОНФИГУРАЦИЯ-----------------------------
+
+local isPalundra = true -- Глобальное отключение защит
+
+local palundraWater = true -- Защита от отстутсвия воды в буфере
+local palundraWaterPercentage = 25 -- Порог срабатывания защиты
+local palundraGauges = true -- Защита от отсутствия потока в трубах
+local palundraTemperature = true -- Защита по температуре
+
+------------------------------------------------------------------
+
 -- Создание окна
-local workspace, window = system.addWindow(GUI.window(1, 1, 150, 40)) 
+local workspace, window = system.addWindow(GUI.window(1, 1, 120, 40)) 
 window:addChild(GUI.panel(1, 1, window.width, window.height, 0xE1E1E1))
 local actionButtons = window:addChild(GUI.actionButtons(2, 2, false))
 
@@ -21,20 +32,7 @@ local radBeep = false
 
 local isAz = false
 
-local levelSlider = window:addChild(GUI.slider(37, 37, 40, 0x66DB80, 0x0, 0xFFFFFF, 0x555555, 0, 100, 50, true, "Высота: ", "%"))
-levelSlider.roundValues = true
-levelSlider.value = r1.getLevel()
-levelSlider.onValueChanged = function()
-  if levelSlider.value > 0 then
-    isAz = false
-  end
-  r1.setLevel(levelSlider.value)
-  r2.setLevel(levelSlider.value)
-  r3.setLevel(levelSlider.value)
-  r4.setLevel(levelSlider.value)
-end
-
-window:addChild(GUI.text(66, 2, 0x555555, "СУЗ СКАЛА 2.0 мини"))
+window:addChild(GUI.text(50, 2, 0x555555, "СУЗ СКАЛА 2.0 мини"))
 
 local getName = {
   ["N/A"] = "Т. с. отсутствует",
@@ -104,6 +102,7 @@ local getSafeTemp = {
   ["item.rbmk_fuel_zfb_bismuth"] = 2000,
   ["item.rbmk_fuel_zfb_am_mix"] = 2000,
   ["item.rbmk_fuel_drx"] = 2000 -- Я не знаю температуру плавления дигамма стержня, мне кажется там вообще другой принцип работы
+  -- А ВООБЩЕ НЕ ВСТАВЛЯЙТЕ ДИГАММА СТЕРЖЕНЬ В ЭТОТ РЕАКТОР!!!
 }
 
 local f1typeLabel = window:addChild(GUI.text(2, 4, 0x555555, "Тип топл. стержня 1: " .. getName[f1.getType()]))
@@ -139,7 +138,7 @@ local f4xenonLabel = window:addChild(GUI.text(60, 17, 0x555555, "Отрав. к�
 local f4depletionLabel = window:addChild(GUI.text(60, 18, 0x555555, "Обеднение топл. стержня 4: " .. f4.getDepletion()))
 
 local radLabel = window:addChild(GUI.text(2, 20, 0x555555, "Радиация в чанке рядом с реактором: " .. rad.getRads() .. " RAD/s"))
-mbt, mbs = steam_gauge.getTransfer()
+local mbt, mbs = steam_gauge.getTransfer()
 local steamLabel = window:addChild(GUI.text(2, 21, 0x555555, "Поток пара: " .. mbt .. " MB/t, " .. mbs .. " MB/s"))
 mbt, mbs = water_gauge.getTransfer()
 local waterLabel = window:addChild(GUI.text(2, 22, 0x555555, "Поток воды: " .. mbt .. " MB/t, " .. mbs .. " MB/s"))
@@ -148,7 +147,41 @@ local lowPressSteamLabel = window:addChild(GUI.text(2, 23, 0x555555, "Поток
 
 local waterBufLabel = window:addChild(GUI.text(2, 24, 0x555555, "Количество воды в буфере: " .. water_storage.getFluidStored() .. " MB"))
 
+local power_graph = window:addChild(GUI.chart(2, 26, 55, 11, 0xEEEEEE, 0xAAAAAA, 0x888888, 0x008800, 0.25, 0.25, "s", "he/s", false, {}))
 local neutrons = window:addChild(GUI.chart(60, 26, 60, 11, 0xEEEEEE, 0xAAAAAA, 0x888888, 0x008800, 0.25, 0.25, "s", "n", false, {}))
+
+window:addChild(GUI.text(2, 25, 0x555555, "Выработка электроэнергии: "))
+window:addChild(GUI.text(60, 25, 0x555555, "Суммарный поток нейтронов: "))
+
+local levelSlider = window:addChild(GUI.slider(36, 38, 40, 0x66DB80, 0x0, 0xFFFFFF, 0x555555, 0, 100, 50, true, "Высота осн. рег. стержней: ", "%"))
+levelSlider.roundValues = true
+levelSlider.value = (r1.getLevel() + r2.getLevel() + r3.getLevel() + r4.getLevel()) / 4
+levelSlider.onValueChanged = function()
+  if levelSlider.value > 0 then
+    isAz = false
+  end
+  r1.setLevel(levelSlider.value)
+  r2.setLevel(levelSlider.value)
+  r3.setLevel(levelSlider.value)
+  r4.setLevel(levelSlider.value)
+end
+
+local dLevelSlider = window:addChild(GUI.slider(85, 38, 30, 0x66DB80, 0x0, 0xFFFFFF, 0x555555, 0, 100, 50, true, "Высота доп. рег. стержней: ", "%"))
+dLevelSlider.roundValues = true
+dLevelSlider.value = (dr1.getLevel() + dr2.getLevel() + dr3.getLevel() + dr4.getLevel() + dr5.getLevel() + dr6.getLevel() + dr7.getLevel() + dr8.getLevel()) / 8
+dLevelSlider.onValueChanged = function()
+  if dLevelSlider.value > 0 then
+    isAz = false
+  end
+  dr1.setLevel(dLevelSlider.value)
+  dr2.setLevel(dLevelSlider.value)
+  dr3.setLevel(dLevelSlider.value)
+  dr4.setLevel(dLevelSlider.value)
+  dr5.setLevel(dLevelSlider.value)
+  dr6.setLevel(dLevelSlider.value)
+  dr7.setLevel(dLevelSlider.value)
+  dr8.setLevel(dLevelSlider.value)
+end
 
 local seconds = 1
 
@@ -172,11 +205,20 @@ display.draw = function(display)
 end
 
 local palundraButton = window:addChild(GUI.button(2, 37, 30, 3, 0xFFFFFF, 0x555555, 0x880000, 0xFFFFFF, "Аварийный стоп"))
+
 local function palundra()
   r1.setLevel(0)
   r2.setLevel(0)
   r3.setLevel(0)
   r4.setLevel(0)
+  dr1.setLevel(0)
+  dr2.setLevel(0)
+  dr3.setLevel(0)
+  dr4.setLevel(0)
+  dr5.setLevel(0)
+  dr6.setLevel(0)
+  dr7.setLevel(0)
+  dr8.setLevel(0)
   levelSlider.value = 0
   table.insert(lines, "Сраб. АЗ. Причина: " .. azreason)
   isAz = true
@@ -191,6 +233,7 @@ local function palundra()
   computer.beep(600, 1)
   azreason = "ХЗ"
 end
+
 palundraButton.onTouch = function()
   azreason = "Руч. наж. кнопки АЗ"
   palundra()
@@ -230,9 +273,13 @@ local function update_window()
   f4depletionLabel.text = "Обеднение топл. стержня 4: " .. f4.getDepletion()
   
   radLabel.text =  "Радиация в чанке рядом с реактором: " .. rad.getRads() .. " RAD/s"
+  
+  local avg_temp = (f1.getHeat() + f2.getHeat() +  f3.getHeat() + f4.getHeat()) / 4
+  local avg_level = (r1.getLevel() + r2.getLevel() + r3.getLevel() + r4.getLevel()) / 4
+  
   mbt, mbs = steam_gauge.getTransfer()
   
-  if mbt < 100 and r1.getLevel() > 0 and f3.getHeat() > 150 then
+  if mbt < 100 and avg_level > 0 and avg_temp > 150 then
     azreason = "Автомат. сраб. по крит. низк. потоку пара"
     palundra()
   end
@@ -242,7 +289,7 @@ local function update_window()
   mbt, mbs = water_gauge.getTransfer()
   waterLabel.text = "Поток воды: " .. mbt .. " MB/t, " .. mbs .. " MB/s"
   
-  if mbt < 100 and r1.getLevel() > 0 and f3.getHeat() > 150 then
+  if mbt < 100 and avg_level > 0 and avg_temp > 150 and isAz == false and palundraGauges == true and isPalundra == true then
     azreason = "Автомат. сраб. по крит. низк. потоку воды"
     palundra()
   end
@@ -250,30 +297,30 @@ local function update_window()
   mbt, mbs = low_press_steam_gauge.getTransfer()
   lowPressSteamLabel.text = "Поток пара низк. давл.: " .. mbt .. " MB/t, " .. mbs .. " MB/s"
   
-  if mbt < 100 and r1.getLevel() > 0 and f3.getHeat() > 200 then
+  if mbt < 100 and avg_level > 0 and avg_temp > 200 and isAz == false and palundraGauges == true and isPalundra == true then
     azreason = "Автомат. сраб. по крит. низк. потоку пара низк. давл."
     palundra()
   end
   
   waterBufLabel.text = "Количество воды в буфере: " .. water_storage.getFluidStored() .. " MB"
   
-  if type(f3.getSkinHeat()) == "number" and f3.getSkinHeat() >= getSafeTemp[f3.getType()] and r1.getLevel() > 0 and not isAz then
+  if type(f3.getSkinHeat()) == "number" and f3.getSkinHeat() >= getSafeTemp[f3.getType()] and r3.getLevel() > 0 and isAz == false and isPalundra == true and palundraTemperature == true then
     azreason = "Автомат. сраб. по темп. т. с. 3"
     palundra()
   end
-  if type(f1.getSkinHeat()) == "number" and f1.getSkinHeat() >= getSafeTemp[f1.getType()] and r1.getLevel() > 0 and not isAz then
+  if type(f1.getSkinHeat()) == "number" and f1.getSkinHeat() >= getSafeTemp[f1.getType()] and r1.getLevel() > 0 and isAz == false and isPalundra == true and palundraTemperature == true then
     azreason = "Автомат. сраб. по темп. т. с. 1"
     palundra()
   end
-  if type(f2.getSkinHeat()) == "number" and f2.getSkinHeat() >= getSafeTemp[f2.getType()] and r1.getLevel() > 0 and not isAz then
+  if type(f2.getSkinHeat()) == "number" and f2.getSkinHeat() >= getSafeTemp[f2.getType()] and r2.getLevel() > 0 and isAz == false and isPalundra == true and palundraTemperature == true then
     azreason = "Автомат. сраб. по темп. т. с. 2"
     palundra()
   end
-  if type(f4.getSkinHeat()) == "number" and f4.getSkinHeat() >= getSafeTemp[f4.getType()] and r1.getLevel() > 0 and not isAz then
+  if type(f4.getSkinHeat()) == "number" and f4.getSkinHeat() >= getSafeTemp[f4.getType()] and r4.getLevel() > 0 and isAz == false and isPalundra == true and palundraTemperature == true then
     azreason = "Автомат. сраб. по темп. т. с. 4"
     palundra()
   end
-  if water_storage.getFluidStored() < 50000 and r1.getLevel() > 0 then
+  if water_storage.getFluidStored() / water_storage.getMaxStored() * 100 <= palundraWaterPercentage and avg_level > 0 and isAz == false and isPalundra == true and palundraWater == true then
     azreason = "Автомат. сраб. по крит. низк. ур. воды"
     palundra()
   end
@@ -289,11 +336,16 @@ local function update_window()
     local z = seconds - y
   end
   
-  table.insert(neutrons.values, {seconds, f1.getFluxQuantity() + f2.getFluxQuantity() + f3.getFluxQuantity() + f4.getFluxQuantity()})
-  
   while #neutrons.values > 0 and (seconds - neutrons.values[1][1]) > 30 do
     table.remove(neutrons.values, 1)
   end
+  while #power_graph.values > 0 and (seconds - power_graph.values[1][1]) > 30 do
+    table.remove(power_graph.values, 1)
+  end
+
+  local _, phe = power_gauge.getTransfer()
+  table.insert(power_graph.values, {seconds, phe})
+  table.insert(neutrons.values, {seconds, f1.getFluxQuantity() + f2.getFluxQuantity() + f3.getFluxQuantity() + f4.getFluxQuantity()})
   
   seconds = seconds + 1
 end
@@ -340,5 +392,5 @@ actionButtons.minimize.onTouch = function()
   window:minimize()
 end
 
-
 workspace:draw()
+
