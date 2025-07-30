@@ -285,8 +285,7 @@ local logsPath = "]] .. logsPath .. [[/SKALA.log"
 
     workspace:draw()
 
-    --local data, reason = internet.request("https://github.com/ke46138/OC-MineOS-SKALA/raw/refs/heads/main/SKALA-reactor-type-4f4r.app/Main.lua")
-    local data, reason = internet.request("https://ke46138.ddns.net/scala-dev/Main.lua")
+    local data, reason = internet.request("https://github.com/ke46138/OC-MineOS-SKALA/raw/refs/heads/main/SKALA-reactor-type-4f4r.app/Main.lua")
 
     if data then
       f.append("/Applications/SKALA.app/Main.lua", data)
