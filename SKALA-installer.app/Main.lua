@@ -273,7 +273,7 @@ local dr8 = component.proxy("]] .. dr8Addr .. [[")
 local rad = component.proxy("]] .. geigerAddr .. [[")
 local water_storage = component.proxy("]] .. waterAddr .. [[")
 local power_gauge = component.proxy("]] .. powerAddr .. [[")
-local logsPath = "]] .. logsPath .. [[/SKALA.log"
+local logsPath = "]] .. logsPath .. [[SKALA.log"
 --deltarune easter egg]])
 
     if success == false then
