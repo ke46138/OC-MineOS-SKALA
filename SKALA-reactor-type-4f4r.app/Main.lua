@@ -222,7 +222,7 @@ local function palundra()
   levelSlider.value = 0
   table.insert(lines, "Сраб. АЗ. Причина: " .. azreason)
   isAz = true
-  f.append("/Mounts/64babd3e-bcbf-4eb9-aea3-e079f63c80f4/SKALA.log", "\n" .. os.date("%d %b %Y %H:%M:%S", system.getTime()) .. ", Сраб. АЗ. Причина: " .. azreason)
+  f.append(logsPath, "\n" .. os.date("%d %b %Y %H:%M:%S", system.getTime()) .. ", Сраб. АЗ. Причина: " .. azreason)
   workspace:draw()
   computer.beep(600, 0.6)
   event.pull(0.25)
@@ -353,7 +353,7 @@ end
 local logSeparator = ", "
 
 local logHandler = event.addHandler(function() -- PLS KILL ME
-  f.append("/Mounts/64babd3e-bcbf-4eb9-aea3-e079f63c80f4/SKALA.log", "\n" .. os.date("%d %b %Y %H:%M:%S", system.getTime()) .. 
+  f.append(logsPath, "\n" .. os.date("%d %b %Y %H:%M:%S", system.getTime()) .. 
   logSeparator .. f1.getHeat() .. logSeparator .. 
   f2.getHeat() .. logSeparator .. f3.getHeat() .. logSeparator .. f4.getHeat() .. logSeparator .. f1.getSkinHeat() ..
   logSeparator .. f2.getSkinHeat() .. logSeparator .. f3.getSkinHeat() .. logSeparator .. f4.getSkinHeat() ..
