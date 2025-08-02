@@ -38,7 +38,7 @@ local function update_window()
   if page == 1 then
     setupText1.text = localization.welcome1
     setupText2.text = localization.welcome2
-    setupText3.text = "https://github.com/ke46138/OC-MineOS-SKALA/blob/main/INSTALLING.md"
+    setupText3.text = "https://github.com/ke46138/OC-MineOS-SKALA/blob/main/INSTALLING_ZIRNOX.md"
   elseif page == 2 then
     setupText1.text = localization.chooseZirnox
     setupText2.text = ""
